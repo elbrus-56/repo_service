@@ -1,0 +1,4 @@
+<yandex>
+  <listen_host>0.0.0.0</listen_host>
+  <max_memory_usage>2147483648</max_memory_usage>
+</yandex>
