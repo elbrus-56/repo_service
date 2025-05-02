@@ -1,0 +1,4 @@
+{
+    "ruff.lineLength": 88,
+    "ruff.lint.preview": true
+}

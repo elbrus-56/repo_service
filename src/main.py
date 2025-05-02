@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from src.endpoints.add_event.handler import router as add_event_router
-from src.endpoints.get_event.handler import router as get_event_router
+from src.endpoints.get_events.handler import router as get_event_router
 from src.configs import settings
 from motor.motor_asyncio import AsyncIOMotorClient
 from clickhouse_driver.dbapi import connect

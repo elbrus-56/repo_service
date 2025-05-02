@@ -8,3 +8,5 @@ def get_mongo_repo(request: Request) -> MongoRepo:
 
 def get_click_repo(request: Request) -> ClickHouseRepo:
     return ClickHouseRepo(request.app.state.click_pool)
+
+
