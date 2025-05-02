@@ -1,6 +1,7 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from src.core.depends import get_mongo_repo
 from src.endpoints.get_events.depends import (
     get_events_use_case_with_click,
     get_events_use_case_with_mongo,
@@ -19,11 +20,20 @@ router = APIRouter()
 @router.get("/get-events-c", tags=["click"])
 async def get_events_click(
     limit: int = Query(default=100, ge=1),
-    offset: int = Query(default=0, ge=0),
+    offset: int | None = Query(default=None, ge=0),
+    order_by: str | None = Query(
+        default=None, description="Сортировка по нужному полю"
+    ),
+    sort: Literal["ASC", "DESC"] = "ASC",
     use_case: GetEventsUseCaseWithClick = Depends(get_events_use_case_with_click),
 ) -> list[Order]:
     try:
-        records = await use_case.execute(limit=limit, offset=offset)
+        records = await use_case.execute(
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            sort=sort,
+        )
         return records
     except Exception as exc:
         raise HTTPException(

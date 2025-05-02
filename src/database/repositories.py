@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from clickhouse_driver.dbapi import connect
 from clickhouse_driver.dbapi.extras import DictCursor
@@ -53,7 +53,9 @@ class ClickHouseRepo(BaseRepo):
         where_clause: str = "",
         params: dict = {},
         limit: Optional[int] = None,
-        offset: int = 0,
+        offset: Optional[int] = None,
+        order_by: Optional[str] = None,
+        sort: Literal["ASC", "DESC"] = "ASC",
         **kwargs,
     ) -> List[Dict[str, Any]]:
         """
@@ -67,8 +69,12 @@ class ClickHouseRepo(BaseRepo):
         query = f"SELECT * FROM {target}"
         if where_clause:
             query += f" WHERE {where_clause}"
+        if order_by:
+            query += f" ORDER BY {order_by} {sort}"
         if limit:
-            query += f" LIMIT {limit} OFFSET {offset}"
+            query += f" LIMIT {limit}"
+        if offset:
+            query += f" OFFSET {offset}"
 
         with self.connection_pool as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
