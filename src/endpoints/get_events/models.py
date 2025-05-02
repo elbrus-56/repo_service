@@ -1,7 +1,8 @@
 import datetime
 from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, Field, AliasChoices
+
+from pydantic import AliasChoices, BaseModel, Field
 
 
 class Order(BaseModel):

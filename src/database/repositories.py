@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Literal, Optional, Tuple
-from motor.motor_asyncio import AsyncIOMotorClient
-from clickhouse_driver.dbapi.connection import Connection
+from typing import Any, Dict, List, Optional
 
+from clickhouse_driver.dbapi import connect
 from clickhouse_driver.dbapi.extras import DictCursor
+from motor.motor_asyncio import AsyncIOMotorClient
+
+from src.configs import Settings
 
 
 class BaseRepo(ABC):
@@ -21,6 +23,8 @@ class MongoRepo(BaseRepo):
     async def get(
         self,
         target: str,
+        limit: int = 0,
+        offset: int = 0,
         filter: Dict[str, Any] = {},
         projection: Optional[Dict[str, Any]] = None,
         **kwargs,
@@ -33,13 +37,15 @@ class MongoRepo(BaseRepo):
         :param kwargs: дополнительные параметры для find()
         :return: список документов
         """
-        cursor = self.db[target].find(filter, projection, **kwargs)
+        cursor = (
+            self.db[target].find(filter, projection, **kwargs).skip(offset).limit(limit)
+        )
         return [doc async for doc in cursor]
 
 
 class ClickHouseRepo(BaseRepo):
-    def __init__(self, connect: Connection):
-        self.connection_pool = connect
+    def __init__(self, settings: Settings):
+        self.connection_pool = connect(settings.clickhouse_uri)
 
     async def get(
         self,
@@ -47,6 +53,7 @@ class ClickHouseRepo(BaseRepo):
         where_clause: str = "",
         params: dict = {},
         limit: Optional[int] = None,
+        offset: int = 0,
         **kwargs,
     ) -> List[Dict[str, Any]]:
         """
@@ -61,7 +68,7 @@ class ClickHouseRepo(BaseRepo):
         if where_clause:
             query += f" WHERE {where_clause}"
         if limit:
-            query += f" LIMIT {limit}"
+            query += f" LIMIT {limit} OFFSET {offset}"
 
         with self.connection_pool as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
