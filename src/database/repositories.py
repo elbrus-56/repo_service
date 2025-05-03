@@ -14,6 +14,11 @@ class BaseRepo(ABC):
         """Базовый метод для получения данных"""
         pass
 
+    @abstractmethod
+    async def post(self, *args, **kwargs):
+        """Базовый метод для добавления записи в базу данных"""
+        pass
+
 
 class MongoRepo(BaseRepo):
     def __init__(self, client: AsyncIOMotorClient):
@@ -47,6 +52,9 @@ class MongoRepo(BaseRepo):
         if order_by:
             cursor.sort({order_by: int(sort)})
         return [doc async for doc in cursor]
+
+    async def post(self, *args, **kwargs) -> List[Dict[str, Any]]:
+        pass
 
 
 class ClickHouseRepo(BaseRepo):
@@ -86,3 +94,25 @@ class ClickHouseRepo(BaseRepo):
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 cursor.execute(query, params, **kwargs)
                 return cursor.fetchall()
+
+    async def post(
+        self,
+        target: str,
+        data: Dict[str, Any],
+        **kwargs,
+    ):
+        """
+        Выполняет вставку данных в указанную таблицу ClickHouse.
+
+        :param target: имя таблицы
+        :param data: данные для вставки в виде словаря
+        :param kwargs: дополнительные параметры для выполнения запроса
+        :return: пустой список (вставка в ClickHouse не возвращает данных)
+        """
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join([f"%({key})s" for key in data.keys()])
+        query = f"INSERT INTO {target} ({columns}) VALUES ({placeholders})"
+
+        with self.connection_pool as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, data, **kwargs)
