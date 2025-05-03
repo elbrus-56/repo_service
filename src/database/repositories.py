@@ -53,8 +53,8 @@ class MongoRepo(BaseRepo):
             cursor.sort({order_by: int(sort)})
         return [doc async for doc in cursor]
 
-    async def post(self, *args, **kwargs) -> List[Dict[str, Any]]:
-        pass
+    async def post(self, target: str, data: dict, **kwargs):
+        return await self.db[target].insert_one(data, **kwargs)
 
 
 class ClickHouseRepo(BaseRepo):

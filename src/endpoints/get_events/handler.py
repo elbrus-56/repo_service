@@ -3,8 +3,8 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.endpoints.get_events.depends import (
-    get_events_use_case_with_click,
-    get_events_use_case_with_mongo,
+    get_use_case_with_click,
+    get_use_case_with_mongo,
 )
 from src.endpoints.get_events.models import Order
 from src.endpoints.get_events.use_cases.for_click import (
@@ -29,7 +29,7 @@ async def get_events_click(
     sort: Literal["ASC", "DESC"] = Query(
         default="ASC", description="Сортировка по убывания или возрастанию"
     ),
-    use_case: GetEventsUseCaseWithClick = Depends(get_events_use_case_with_click),
+    use_case: GetEventsUseCaseWithClick = Depends(get_use_case_with_click),
 ) -> list[Order]:
     try:
         records = await use_case.execute(
@@ -56,7 +56,7 @@ async def get_events_mongo(
     sort: Literal["1", "-1"] = Query(
         default="1", description="Сортировка по убывания или возрастанию"
     ),
-    use_case: GetEventsUseCaseWithMongo = Depends(get_events_use_case_with_mongo),
+    use_case: GetEventsUseCaseWithMongo = Depends(get_use_case_with_mongo),
 ) -> list[Order]:
     try:
         records = await use_case.execute(

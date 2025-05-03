@@ -1,5 +1,4 @@
 import datetime
-from decimal import Decimal
 import random
 import uuid
 
@@ -7,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class Order(BaseModel):
-    order_id: uuid.UUID = Field(default_factory=lambda: uuid.uuid4())
+    order_id: uuid.UUID | str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: int = Field(default_factory=lambda: random.randrange(1000, 10000000))
     order_date: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now()
@@ -21,7 +20,7 @@ class Order(BaseModel):
         default_factory=lambda: f"PROD-{random.randrange(1000, 10000000)}"
     )
     quantity: int = Field(default_factory=lambda: random.randrange(0, 100))
-    amount: Decimal = Field(default_factory=lambda: Decimal(random.randrange(0, 5000)))
+    amount: float = Field(default_factory=lambda: random.randrange(0, 5000))
     shipping_address_city: list[str] = Field(
         default_factory=lambda: [f"City {random.randrange(1, 1000)}"],
         serialization_alias="shipping_address.city",

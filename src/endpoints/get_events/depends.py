@@ -10,13 +10,13 @@ from src.endpoints.get_events.use_cases.for_mongo import (
 )
 
 
-async def get_events_use_case_with_click(
+async def get_use_case_with_click(
     repo: ClickHouseRepo = Depends(get_click_repo),
 ) -> GetEventsUseCaseClick:
     return GetEventsUseCaseClick(repo)
 
 
-async def get_events_use_case_with_mongo(
+async def get_use_case_with_mongo(
     repo: MongoRepo = Depends(get_mongo_repo),
 ) -> GetEventsUseCaseMongo:
     return GetEventsUseCaseMongo(repo)
