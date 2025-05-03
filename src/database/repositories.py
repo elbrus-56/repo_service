@@ -23,6 +23,8 @@ class MongoRepo(BaseRepo):
     async def get(
         self,
         target: str,
+        order_by: Optional[str] = None,
+        sort: Literal[1, -1] = 1,
         limit: int = 0,
         offset: int = 0,
         filter: Dict[str, Any] = {},
@@ -37,9 +39,13 @@ class MongoRepo(BaseRepo):
         :param kwargs: дополнительные параметры для find()
         :return: список документов
         """
-        cursor = (
-            self.db[target].find(filter, projection, **kwargs).skip(offset).limit(limit)
-        )
+        cursor = self.db[target].find(filter, projection, **kwargs)
+        if offset:
+            cursor = cursor.skip(offset)
+        if limit:
+            cursor = cursor.limit(limit)
+        if order_by:
+            cursor.sort({order_by: int(sort)})
         return [doc async for doc in cursor]
 
 

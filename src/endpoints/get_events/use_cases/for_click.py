@@ -18,13 +18,14 @@ class GetEventsUseCase:
         sort: Literal["ASC", "DESC"],
     ) -> list[Order]:
         """Функция получает список записей из базы"""
-        return [
-            Order(**order)
-            for order in await self.repository.get(
+        try:
+            orders = await self.repository.get(
                 target="events.orders",
                 limit=limit,
                 offset=offset,
                 order_by=order_by,
                 sort=sort,
             )
-        ]
+            return [Order(**order) for order in orders]
+        except Exception:
+            return []
