@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 from clickhouse_driver.dbapi import connect
 from clickhouse_driver.dbapi.extras import DictCursor
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.results import DeleteResult, InsertOneResult
 
 from src.configs import Settings
 
@@ -17,6 +18,11 @@ class BaseRepo(ABC):
     @abstractmethod
     async def post(self, *args, **kwargs):
         """Базовый метод для добавления записи в базу данных"""
+        pass
+
+    @abstractmethod
+    async def delete(self, *args, **kwargs):
+        """Базовый метод для удаления записей из базы данных"""
         pass
 
 
@@ -53,8 +59,24 @@ class MongoRepo(BaseRepo):
             cursor.sort({order_by: int(sort)})
         return [doc async for doc in cursor]
 
-    async def post(self, target: str, data: dict, **kwargs):
+    async def post(self, target: str, data: dict, **kwargs) -> InsertOneResult:
         return await self.db[target].insert_one(data, **kwargs)
+
+    async def delete(
+        self,
+        target: str,
+        filter: Dict[str, Any],
+        **kwargs,
+    ) -> DeleteResult:
+        """
+        Удаляет документы из указанной коллекции MongoDB по заданным условиям.
+
+        :param target: имя коллекции
+        :param filter: словарь условий фильтрации
+        :param kwargs: дополнительные параметры для delete_many
+        :return: результат операции удаления
+        """
+        return await self.db[target].delete_one(filter, **kwargs)
 
 
 class ClickHouseRepo(BaseRepo):
@@ -116,3 +138,30 @@ class ClickHouseRepo(BaseRepo):
         with self.connection_pool as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, data, **kwargs)
+
+    async def delete(
+        self,
+        target: str,
+        where_clause: str = "",
+        params: Dict[str, Any] = {},
+        **kwargs,
+    ) -> bool:
+        """
+        Удаляет записи из таблицы ClickHouse по заданным условиям.
+
+        :param target: имя таблицы
+        :param where_clause: часть SQL после WHERE (без слова WHERE)
+        :param params: параметры для безопасного выполнения
+        :param kwargs: дополнительные параметры для execute()
+        :return: True, если удаление прошло успешно
+        :raises ValueError: если where_clause не указан
+        """
+        if not where_clause:
+            raise ValueError("where_clause обязателен для операции DELETE в ClickHouse")
+
+        query = f"ALTER TABLE {target} DELETE WHERE {where_clause}"
+        with self.connection_pool as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params, **kwargs)
+
+        return True

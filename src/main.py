@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from src.configs import settings
 from src.endpoints.add_event.handler import router as add_event_router
+from src.endpoints.delete_event.handler import router as del_event_router
 from src.endpoints.get_events.handler import router as get_event_router
 
 
@@ -16,6 +17,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, title="Pet service")
 app.include_router(add_event_router)
 app.include_router(get_event_router)
+app.include_router(del_event_router)
 
 
 class RootResponse(BaseModel):

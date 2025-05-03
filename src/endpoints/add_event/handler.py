@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.endpoints.add_event.models import Order
 from src.endpoints.add_event.depends import (
     get_use_case_with_click,
     get_use_case_with_mongo,
 )
+from src.endpoints.add_event.models import Order
 from src.endpoints.add_event.use_cases.for_click import (
     AddEventUseCase as AddEventUseCaseClick,
 )
@@ -32,7 +32,7 @@ async def add_event_click(
 @router.post("/add-event-m", tags=["mongo"])
 async def add_event_mongo(
     use_case: AddEventUseCaseMongo = Depends(get_use_case_with_mongo),
-):
+) -> Order:
     try:
         records = await use_case.execute()
         return records
