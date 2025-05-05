@@ -4,6 +4,8 @@ from typing import Literal
 from src.database.repositories import BaseRepo
 from src.endpoints.update_event.models import Order
 
+from loguru import logger
+
 
 class UpdateEventUseCase:
 
@@ -28,5 +30,5 @@ class UpdateEventUseCase:
                 params=params,
             )
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return None
