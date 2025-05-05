@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 from clickhouse_driver.dbapi import connect
 from clickhouse_driver.dbapi.extras import DictCursor
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.results import DeleteResult, InsertOneResult
+from pymongo.results import DeleteResult, InsertOneResult, UpdateResult
 
 from src.configs import Settings
 
@@ -23,6 +23,11 @@ class BaseRepo(ABC):
     @abstractmethod
     async def delete(self, *args, **kwargs):
         """Базовый метод для удаления записей из базы данных"""
+        pass
+
+    @abstractmethod
+    async def update(self, *args, **kwargs):
+        """Базовый метод для изменения записи в базе данных"""
         pass
 
 
@@ -73,10 +78,14 @@ class MongoRepo(BaseRepo):
 
         :param target: имя коллекции
         :param filter: словарь условий фильтрации
+        :param data: новый объект
         :param kwargs: дополнительные параметры для delete_many
         :return: результат операции удаления
         """
         return await self.db[target].delete_one(filter, **kwargs)
+
+    async def update(self, target: str, filter: dict,  data: dict, **kwargs) -> UpdateResult:
+        return await self.db[target].update_one(filter, data, **kwargs)
 
 
 class ClickHouseRepo(BaseRepo):
@@ -120,7 +129,7 @@ class ClickHouseRepo(BaseRepo):
     async def post(
         self,
         target: str,
-        data: Dict[str, Any],
+        params: Dict[str, Any],
         **kwargs,
     ):
         """
@@ -131,13 +140,13 @@ class ClickHouseRepo(BaseRepo):
         :param kwargs: дополнительные параметры для выполнения запроса
         :return: пустой список (вставка в ClickHouse не возвращает данных)
         """
-        columns = ", ".join(data.keys())
-        placeholders = ", ".join([f"%({key})s" for key in data.keys()])
+        columns = ", ".join(params.keys())
+        placeholders = ", ".join([f"%({key})s" for key in params.keys()])
         query = f"INSERT INTO {target} ({columns}) VALUES ({placeholders})"
 
         with self.connection_pool as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, data, **kwargs)
+                cursor.execute(query, params, **kwargs)
 
     async def delete(
         self,
@@ -163,5 +172,36 @@ class ClickHouseRepo(BaseRepo):
         with self.connection_pool as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params, **kwargs)
+
+        return True
+
+    async def update(
+        self,
+        target: str,
+        update_data: Dict[str, Any],
+        where_clause: str = "",
+        params: Dict[str, Any] = {},
+        **kwargs,
+    ) -> bool:
+        """
+        Выполняет обновление записей в таблице ClickHouse.
+
+        :param target: имя таблицы
+        :param update_data: словарь с полями и их новыми значениями
+        :param where_clause: часть SQL после WHERE (без слова WHERE)
+        :param params: параметры для безопасного выполнения WHERE
+        :param kwargs: дополнительные параметры для execute()
+        :return: True, если обновление прошло успешно
+        :raises ValueError: если where_clause не указан
+        """
+        if not where_clause:
+            raise ValueError("where_clause обязателен для операции UPDATE в ClickHouse")
+
+        set_clause = ", ".join([f"{key} = %({key})s" for key in update_data.keys()])
+        query = f"ALTER TABLE {target} UPDATE {set_clause} WHERE {where_clause}"
+
+        with self.connection_pool as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, {**params, **update_data}, **kwargs)
 
         return True

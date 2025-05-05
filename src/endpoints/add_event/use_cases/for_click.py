@@ -15,6 +15,6 @@ class AddEventUseCase:
         order = Order()
         await self.repository.post(
             target="events.orders",
-            data=order.model_dump(by_alias=True),
+            params=order.model_dump(by_alias=True),
         )
         return order
