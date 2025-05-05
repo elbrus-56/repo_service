@@ -1,5 +1,7 @@
 from typing import Literal
 
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 
 
@@ -22,5 +24,5 @@ class DelEventUseCase:
                 params=params,
             )
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return None

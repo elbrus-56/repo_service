@@ -1,4 +1,7 @@
 import datetime
+
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 from src.endpoints.update_event.models import Order
 
@@ -24,5 +27,5 @@ class UpdateEventUseCase:
             )
             return True
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return None

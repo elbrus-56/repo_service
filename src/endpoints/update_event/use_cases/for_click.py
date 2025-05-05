@@ -1,10 +1,10 @@
 import datetime
 from typing import Literal
 
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 from src.endpoints.update_event.models import Order
-
-from loguru import logger
 
 
 class UpdateEventUseCase:
