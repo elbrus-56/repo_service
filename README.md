@@ -1,6 +1,5 @@
-# Bookkeeper Service
-
-Микросервис расчета состояния стратегий
+# Repo Service
+Сервис FastAPI с использованием паттерна репозиторий и команда для описания бизнес логики
 
 ## Prerequisites
 - python 3.11 [requirements](requirements.txt)
@@ -8,52 +7,31 @@
 - ClickHouse
 
 
-## Подготовка перед запуском приложения
-Переходим в каталог в приложением
+## Установка виртуального окружения
+1. Устанавливаем виртуальную среду командой `python -m venv venv`
 
-### Создаем виртуальное окружение
+### Установка зависимостей через Poetry
+1. На компьютере должен быть установлен `poetry` с помощью команды `pip install poetry`
+2. Устанавливаем основные зависимости через `poetry` с помощью команд:
+    - `poetry install --without dev` - для установки основных зависимостей
+    - `poetry install --with dev` - для установки тестовых библиотек разработки
+3. Необязательный плагин `poetry` для экспорта в `requirements.txt`: `pip install poetry-plugin-export`
+4. Usage : `poetry export -f requirements.txt --output requirements.txt --without-hashes`
 
-```shell
-python3.11 -m venv venv
-```
+### Установка зависимостей через Pip
+1. Альтернативное решение запустить `pip install -r requirements.txt`
 
-### Активируем виртуальное окружение
 
-```shell
-source /venv/bin/activate
-```
-
-### Устанавливаем библиотеки и зависимости
-
-```shell
-pip install -r requirements.txt
-```
-### Экпортируем переменные окружения
-* export environment variables
-
-```shell
-export RABBIT_URI="amqp://user:pass@host:5672/vhost"
-export MONGO_URI="mongodb://user:pass@host:27017/database?authSource=admin"
-```
-
-### Запускаем приложение
-#### development
-Запуск приложения, когда виртуальное окружение активировано
-Осуществляется из каталога приложения
-
-```shell
-faststream run src.main:app --log-level debug
-```
-
-Быстрый запуск, когда виртуальное окружение установлено и имеет установленные зависимости. Но не активировано.
-Указываем абсолютный путь к папке с виртуальным окружением
-```sh
-/var/www/vhosts/cryptobot/bookkeeper/venv/bin/faststream run src.main:app --log-level warning --workers 8
-```
+## Запуск приложения стандартным способом
+1. Требуется указать переменные окружения для подключения к Kafka в `src/configs.py`
+2. Запускаем приложение с помощью команды:
+    - `python -m uvicorn --host 0.0.0.0 --port 5032 src.main:app`,
 ##### Аргументы
+`port` указывается по желанию
 --log-level: задает уровень логирования (debug, info, warning, error, critical)
---workers: определяет количество воркеров в приложении
+--workers: определяет количество воркеров в приложении (задается как целое число, по умолчанию 1)
 
-#### production
-Для запуска в production используется конфиг супервизора
-use [.ini](bookkeeper.ini) file and make your own system supervisor config under /etc/supervisord.d/bookkeeper.ini
+## Запуск линтеров isort, flake8
+Запуск линтеров осуществляется командами из корневого каталога:
+    - isort: `isort .`
+    - flake8: `flake8 .`
