@@ -1,3 +1,5 @@
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 
 
@@ -20,5 +22,5 @@ class DelEventUseCase:
             )
             return True
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return None

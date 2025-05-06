@@ -1,5 +1,7 @@
 from typing import Literal
 
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 from src.endpoints.get_events.models import Order
 
@@ -28,5 +30,5 @@ class GetEventsUseCase:
             )
             return [Order(**order) for order in orders]
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return []

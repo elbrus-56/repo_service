@@ -1,6 +1,8 @@
 import datetime
 from typing import Literal
 
+from loguru import logger
+
 from src.database.repositories import BaseRepo
 from src.endpoints.update_event.models import Order
 
@@ -17,7 +19,7 @@ class UpdateEventUseCase:
     ) -> Literal[True] | None:
         """Функция обновляет запись из базы"""
         data.updated_at = datetime.datetime.now()
-        update_data = data.model_dump(exclude=(data.order_id))
+        update_data = data.model_dump(exclude=("order_id",), by_alias=True)
         params = {"order_id": data.order_id}
         where_clause = "order_id = %(order_id)s;"
         try:
@@ -28,5 +30,5 @@ class UpdateEventUseCase:
                 params=params,
             )
         except Exception as exc:
-            print(exc)
+            logger.error(exc)
             return None

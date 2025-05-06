@@ -84,8 +84,10 @@ class MongoRepo(BaseRepo):
         """
         return await self.db[target].delete_one(filter, **kwargs)
 
-    async def update(self, target: str, filter: dict,  data: dict, **kwargs) -> UpdateResult:
-        return await self.db[target].update_one(filter, data, **kwargs)
+    async def update(
+        self, target: str, filter: dict, data: dict, **kwargs
+    ) -> UpdateResult:
+        return await self.db[target].update_one(filter, {"$set": data}, **kwargs)
 
 
 class ClickHouseRepo(BaseRepo):
@@ -199,7 +201,6 @@ class ClickHouseRepo(BaseRepo):
 
         set_clause = ", ".join([f"{key} = %({key})s" for key in update_data.keys()])
         query = f"ALTER TABLE {target} UPDATE {set_clause} WHERE {where_clause}"
-
         with self.connection_pool as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, {**params, **update_data}, **kwargs)
